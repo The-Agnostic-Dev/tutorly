@@ -1,0 +1,7 @@
+services:
+  tutorly:
+    build: .
+    ports:
+      - "5117:5117"
+    environment:
+      SESSION_SECRET: change-me-outside-development
