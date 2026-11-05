@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, monthBounds, openDays, recentMonths, toUtcIso, weekStart, weekday } from '@/lib/time'
+import * as time from '@/lib/time'
+const { addDays, monthBounds, openDays, recentMonths, toUtcIso, weekStart, weekday } = time
 
 describe('Lagos dates', () => {
   it('converts Lagos wall-clock time to UTC', () => {
@@ -18,6 +19,13 @@ describe('Lagos dates', () => {
     expect(days).toHaveLength(6)
     expect(days[5]).toBe('2026-11-07')
     expect(weekday(days[5])).toBe(6)
+  })
+
+  it('names the days of the open week from their dates', () => {
+    expect(time.dayName).toBeDefined()
+    expect(time.dayName('2024-09-02')).toBe('Mon')
+    expect(time.dayName('2024-09-07')).toBe('Sat')
+    expect(openDays('2024-09-02').map(time.dayName)).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
   })
 
   it('adds days across month ends', () => {
