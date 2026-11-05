@@ -24,7 +24,7 @@ export function listStudents(today: string, nowIso: string, parentId?: number): 
        WHERE @parentId IS NULL OR st.parent_id = @parentId
        ORDER BY st.name`,
     )
-    .all({ today, now: nowIso, parentId: parentId ?? null }) as StudentRow[]
+    .all({ now: nowIso, parentId: parentId ?? null }) as StudentRow[]
 }
 
 export function getStudent(id: number, today: string, nowIso: string): StudentRow | null {

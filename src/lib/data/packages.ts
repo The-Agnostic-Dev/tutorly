@@ -22,15 +22,15 @@ export function packagesForStudent(studentId: number): Package[] {
     .all(studentId) as Package[]
 }
 
-/** The package new lessons draw from: the one that runs out soonest among those with hours left. */
-export function activePackage(studentId: number): Package | null {
+/** The package new lessons draw from: the one that runs out soonest among those still valid. */
+export function activePackage(studentId: number, today: string): Package | null {
   const row = getDb()
     .prepare(
       `SELECT ${COLUMNS} FROM packages
-       WHERE student_id = ? AND hours_remaining > 0
+       WHERE student_id = ? AND expires_on >= ?
        ORDER BY expires_on, id LIMIT 1`,
     )
-    .get(studentId) as Package | undefined
+    .get(studentId, today) as Package | undefined
   return row ?? null
 }
 

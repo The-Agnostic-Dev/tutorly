@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { freshCentre, withPackage } from './fixtures'
 import { packageStatus, packagesForStudent } from '@/lib/data/packages'
+import { listStudents, getStudent } from '@/lib/data/students'
 import { lagosDate, addDays, weekday } from '@/lib/time'
 import { bookLesson } from '@/lib/services/bookings'
 
@@ -68,5 +69,27 @@ describe('package with remaining hours past expiry', () => {
 
     const freshPkg = packagesForStudent(1).find(p => p.id === freshId)
     expect(freshPkg?.hoursRemaining).toBe(9)
+  })
+
+  it('listStudents and getStudent work with bind parameters and report hoursLeft', () => {
+    freshCentre()
+    const today = lagosDate(new Date())
+    const nowIso = new Date().toISOString()
+
+    // Pay-as-you-go student has null hoursLeft
+    let rows = listStudents(today, nowIso)
+    expect(rows).toHaveLength(1)
+    expect(rows[0].hoursLeft).toBeNull()
+    expect(getStudent(1, today, nowIso)?.hoursLeft).toBeNull()
+
+    // With a 5-hour package, hoursLeft becomes 5
+    const pastDate = new Date(Date.now() - 100 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10)
+    withPackage(5, pastDate)
+
+    rows = listStudents(today, nowIso)
+    expect(rows[0].hoursLeft).toBe(5)
+    expect(getStudent(1, today, nowIso)?.hoursLeft).toBe(5)
   })
 })
