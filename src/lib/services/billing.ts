@@ -8,8 +8,7 @@ export type InvoiceLine = { description: string; amount: number }
 
 /** Price of a pay-as-you-go lesson at the tutor's hourly rate (kobo). */
 export function lessonCharge(hourlyRate: number, minutes: number): number {
-  const hours = Number((minutes / 60).toFixed(2))
-  return Math.round(hourlyRate * hours)
+  return Math.round((hourlyRate * minutes) / 60)
 }
 
 /**
