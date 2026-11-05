@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { getLesson } from '@/lib/data/lessons'
+import { upcomingLessons } from '@/lib/data/students'
 import { packagesForStudent } from '@/lib/data/packages'
 import { bookLesson, cancelLesson, checkSlot, validateSlot, type BookingRequest } from '@/lib/services/bookings'
 import { admin, freshCentre, parent, withPackage } from './fixtures'
@@ -75,5 +76,24 @@ describe('booking and cancelling', () => {
     if (!booked.ok) throw new Error(booked.message)
     expect(cancelLesson(booked.lessonId, admin, NOW)).toEqual({ ok: true, hoursReturned: false })
     expect(packagesForStudent(1)[0].hoursRemaining).toBe(9)
+  })
+})
+
+describe('upcomingLessons ordering', () => {
+  beforeEach(() => {
+    freshCentre()
+  })
+
+  it('returns booked lessons in chronological order', () => {
+    const first = bookLesson(request({ date: '2026-11-07', time: '16:00' }), NOW)
+    const second = bookLesson(request({ date: '2026-11-05', time: '15:00' }), NOW)
+    const third = bookLesson(request({ date: '2026-11-06', time: '17:00' }), NOW)
+    expect(first.ok).toBe(true)
+    expect(second.ok).toBe(true)
+    expect(third.ok).toBe(true)
+
+    const lessons = upcomingLessons(1, NOW.toISOString())
+    const starts = lessons.map(l => l.startsAt)
+    expect(starts).toEqual([...starts].sort())
   })
 })
