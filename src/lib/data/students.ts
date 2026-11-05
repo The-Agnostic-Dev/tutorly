@@ -17,7 +17,7 @@ export function listStudents(today: string, nowIso: string, parentId?: number): 
     .prepare(
       `SELECT st.id, st.name, st.class_level AS classLevel, st.parent_id AS parentId, u.name AS parentName,
               (SELECT SUM(p.hours_remaining) FROM packages p
-                WHERE p.student_id = st.id AND p.expires_on >= @today) AS hoursLeft,
+                WHERE p.student_id = st.id AND p.hours_remaining > 0) AS hoursLeft,
               (SELECT MIN(l.starts_at) FROM lessons l
                 WHERE l.student_id = st.id AND l.status = 'booked' AND l.starts_at >= @now) AS nextLesson
        FROM students st JOIN users u ON u.id = st.parent_id

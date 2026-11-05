@@ -93,7 +93,7 @@ export function bookLesson(
   const problem = validateSlot(req, now)
   if (problem) return fail(problem)
 
-  const pkg = activePackage(req.studentId, lagosDate(now))
+  const pkg = activePackage(req.studentId)
   if (pkg && !hasEnoughHours(pkg, req.durationMin)) {
     return fail(`Not enough hours left on the package (${formatHours(pkg.hoursRemaining)} left). Please top up first.`)
   }
