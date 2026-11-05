@@ -1,7 +1,7 @@
 import type { User } from '../auth'
 import { getDb } from '../db'
 import { getLesson } from '../data/lessons'
-import { activePackage, drawDown, giveBack, hasEnoughHours } from '../data/packages'
+import { drawDown, giveBack, hasEnoughHours, packagesWithHours, type Package } from '../data/packages'
 import { tutorTeaches } from '../data/tutors'
 import { formatHours } from '../hours'
 import { CLOSE_HOUR, FREE_CANCELLATION_HOURS, LESSON_DURATIONS, OPEN_HOUR } from '../policy'
@@ -93,9 +93,13 @@ export function bookLesson(
   const problem = validateSlot(req, now)
   if (problem) return fail(problem)
 
-  const pkg = activePackage(req.studentId)
-  if (pkg && !hasEnoughHours(pkg, req.durationMin)) {
-    return fail(`Not enough hours left on the package (${formatHours(pkg.hoursRemaining)} left). Please top up first.`)
+  const pkgs = packagesWithHours(req.studentId)
+  let pkg: Package | null = null
+  if (pkgs.length > 0) {
+    pkg = pkgs.find((p) => hasEnoughHours(p, req.durationMin)) ?? null
+    if (!pkg) {
+      return fail(`Not enough hours left on the package (${formatHours(pkgs[0].hoursRemaining)} left). Please top up first.`)
+    }
   }
 
   const db = getDb()

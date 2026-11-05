@@ -13,10 +13,6 @@ export type Package = {
   expiresOn: string
 }
 
-export function hoursRemaining(pkg: Package): number {
-  return pkg.hoursRemaining
-}
-
 const COLUMNS = `id, student_id AS studentId, hours_purchased AS hoursPurchased, hours_remaining AS hoursRemaining,
   price, purchased_on AS purchasedOn, expires_on AS expiresOn`
 
@@ -36,6 +32,16 @@ export function activePackage(studentId: number): Package | null {
     )
     .get(studentId) as Package | undefined
   return row ?? null
+}
+
+export function packagesWithHours(studentId: number): Package[] {
+  return getDb()
+    .prepare(
+      `SELECT ${COLUMNS} FROM packages
+       WHERE student_id = ? AND hours_remaining > 0
+       ORDER BY expires_on, id`,
+    )
+    .all(studentId) as Package[]
 }
 
 export function packageStatus(pkg: Package, today: string): 'Active' | 'Used up' | 'Expired' {
