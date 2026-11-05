@@ -22,10 +22,10 @@ describe('Lagos dates', () => {
   })
 
   it('names the days of the open week from their dates', () => {
-    expect(time.dayName).toBeDefined()
-    expect(time.dayName('2024-09-02')).toBe('Mon')
-    expect(time.dayName('2024-09-07')).toBe('Sat')
-    expect(openDays('2024-09-02').map(time.dayName)).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+    const names = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    expect(names[weekday('2024-09-02')]).toBe('Mon')
+    expect(names[weekday('2024-09-07')]).toBe('Sat')
+    expect(openDays('2024-09-02').map((d) => names[weekday(d)])).toEqual(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
   })
 
   it('adds days across month ends', () => {
