@@ -19,6 +19,11 @@ describe('lessonCharge', () => {
     expect(lessonCharge(600_000, 30)).toBe(300_000)
     expect(lessonCharge(800_000, 120)).toBe(1_600_000)
   })
+
+  it('charges pro-rata for minutes that are not whole or half hours', () => {
+    expect(lessonCharge(750_000, 40)).toBe(500_000)
+    expect(lessonCharge(600_000, 45)).toBe(450_000)
+  })
 })
 
 describe('monthly invoice', () => {
