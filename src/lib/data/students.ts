@@ -36,7 +36,7 @@ export function upcomingLessons(studentId: number, nowIso: string): Lesson[] {
     .prepare(
       `${LESSON_SELECT}
        WHERE l.student_id = ? AND l.status = 'booked' AND l.starts_at >= ?
-       ORDER BY l.starts_at DESC`,
+       ORDER BY l.starts_at ASC`,
     )
     .all(studentId, nowIso) as Lesson[]
 }
