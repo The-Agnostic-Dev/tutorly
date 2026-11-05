@@ -34,10 +34,20 @@ export function activePackage(studentId: number, today: string): Package | null 
   return row ?? null
 }
 
+export function packagesWithHours(studentId: number): Package[] {
+  return getDb()
+    .prepare(
+      `SELECT ${COLUMNS} FROM packages
+       WHERE student_id = ? AND hours_remaining > 0
+       ORDER BY expires_on, id`,
+    )
+    .all(studentId) as Package[]
+}
+
 export function packageStatus(pkg: Package, today: string): 'Active' | 'Used up' | 'Expired' {
+  if (pkg.hoursRemaining > 0) return 'Active'
   if (pkg.expiresOn < today) return 'Expired'
-  if (pkg.hoursRemaining <= 0) return 'Used up'
-  return 'Active'
+  return 'Used up'
 }
 
 export function createPackage(studentId: number, hours: number, price: number, purchasedOn: string): number {

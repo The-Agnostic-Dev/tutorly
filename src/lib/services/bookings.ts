@@ -1,7 +1,7 @@
 import type { User } from '../auth'
 import { getDb } from '../db'
 import { getLesson } from '../data/lessons'
-import { activePackage, drawDown, giveBack, hasEnoughHours } from '../data/packages'
+import { activePackage, drawDown, giveBack, hasEnoughHours, packagesWithHours, type Package } from '../data/packages'
 import { tutorTeaches } from '../data/tutors'
 import { formatHours } from '../hours'
 import { CLOSE_HOUR, FREE_CANCELLATION_HOURS, LESSON_DURATIONS, OPEN_HOUR } from '../policy'
@@ -93,9 +93,22 @@ export function bookLesson(
   const problem = validateSlot(req, now)
   if (problem) return fail(problem)
 
-  const pkg = activePackage(req.studentId, lagosDate(now))
-  if (pkg && !hasEnoughHours(pkg, req.durationMin)) {
-    return fail(`Not enough hours left on the package (${formatHours(pkg.hoursRemaining)} left). Please top up first.`)
+  const today = lagosDate(now)
+  const active = activePackage(req.studentId, today)
+  let pkg: Package | null = null
+  if (active) {
+    if (!hasEnoughHours(active, req.durationMin)) {
+      return fail(`Not enough hours left on the package (${formatHours(active.hoursRemaining)} left). Please top up first.`)
+    }
+    pkg = active
+  } else {
+    const expired = packagesWithHours(req.studentId)
+    if (expired.length > 0) {
+      pkg = expired[0]
+      if (!hasEnoughHours(pkg, req.durationMin)) {
+        return fail(`Not enough hours left on the package (${formatHours(pkg.hoursRemaining)} left). Please top up first.`)
+      }
+    }
   }
 
   const db = getDb()
