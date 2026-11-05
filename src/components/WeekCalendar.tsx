@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { formatDuration } from '@/lib/hours'
 import { addDays, dayOfMonth, formatDate, lagosDate, lagosTime, openDays, weekStart } from '@/lib/time'
+import { dayName } from '@/lib/dayName'
 
 export type CalendarLesson = {
   id: number
@@ -15,7 +16,6 @@ export type CalendarLesson = {
   tutorName: string
 }
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 type Props = { monday: string; today: string; lessons: CalendarLesson[]; tutor?: string }
 
@@ -50,10 +50,10 @@ export function WeekCalendar({ monday, today, lessons, tutor }: Props) {
         </button>
       </div>
       <div className="week">
-        {days.map((day, i) => (
+        {days.map((day) => (
           <section key={day} className={day === today ? 'day today' : 'day'} data-date={day}>
             <header>
-              {DAY_NAMES[i]} {dayOfMonth(day)}
+              {dayName(day)} {dayOfMonth(day)}
             </header>
             {(byDay.get(day) ?? []).map((lesson) => (
               <Link
