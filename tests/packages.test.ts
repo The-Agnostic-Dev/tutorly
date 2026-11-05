@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { freshCentre, withPackage } from './fixtures'
-import { packageStatus, hoursRemaining } from '@/lib/data/packages'
+import { packageStatus, hoursRemaining, packagesForStudent } from '@/lib/data/packages'
+import { lagosDate, addDays, weekday } from '@/lib/time'
 import { bookLesson } from '@/lib/services/bookings'
 
 describe('package with remaining hours past expiry', () => {
@@ -11,26 +12,34 @@ describe('package with remaining hours past expiry', () => {
     const pastDate = new Date(Date.now() - 100 * 24 * 60 * 60 * 1000)
       .toISOString()
       .slice(0, 10)
-    const packageId = withPackage(5, pastDate)
+    withPackage(5, pastDate)
+
+    const pkg = packagesForStudent(1)[0]
+    const today = lagosDate(new Date())
 
     // Package must be Active because it has remaining hours
-    expect(packageStatus(packageId)).toBe('Active')
+    expect(packageStatus(pkg, today)).toBe('Active')
 
     // Hours remaining unchanged
-    expect(hoursRemaining(packageId)).toBe(5)
+    expect(hoursRemaining(pkg)).toBe(5)
 
-    // Book a 60-minute lesson now; it should use the package
+    // Book a 60-minute lesson on a future open day; it should use the package
+    let futureDate = addDays(today, 2)
+    if (weekday(futureDate) === 0) futureDate = addDays(futureDate, 1)
     const result = bookLesson({
       studentId: 1,
       tutorId: 1,
       subjectId: 1,
-      startAt: new Date().toISOString(),
-      durationMinutes: 60,
+      date: futureDate,
+      time: '10:00',
+      durationMin: 60,
     })
 
-    expect(result.packageId).toBe(packageId)
+    if (!result.ok) throw new Error(result.message)
+    expect(result.packageId).toBe(pkg.id)
 
     // Balance drawn down from 5 to 4 hours
-    expect(hoursRemaining(packageId)).toBe(4)
+    const updated = packagesForStudent(1)[0]
+    expect(hoursRemaining(updated)).toBe(4)
   })
 })
