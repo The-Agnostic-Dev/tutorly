@@ -92,4 +92,53 @@ describe('package with remaining hours past expiry', () => {
     expect(rows[0].hoursLeft).toBe(5)
     expect(getStudent(1, today, nowIso)?.hoursLeft).toBe(5)
   })
+
+  it('refuses a booking when the soonest-expiring unexpired package cannot cover the lesson', () => {
+    freshCentre()
+    const today = lagosDate(new Date())
+    const shortId = withPackage(0.5, addDays(today, -5))
+    const longId = withPackage(10, today)
+
+    let futureDate = addDays(today, 2)
+    if (weekday(futureDate) === 0) futureDate = addDays(futureDate, 1)
+    const result = bookLesson({
+      studentId: 1,
+      tutorId: 1,
+      subjectId: 1,
+      date: futureDate,
+      time: '10:00',
+      durationMin: 60,
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.message).toContain('Not enough hours left')
+
+    const longPkg = packagesForStudent(1).find(p => p.id === longId)
+    expect(longPkg?.hoursRemaining).toBe(10)
+  })
+
+  it('refuses a used-up unexpired package and dashboards still show 0.00 h left', () => {
+    freshCentre()
+    const today = lagosDate(new Date())
+    const nowIso = new Date().toISOString()
+    withPackage(0, today)
+
+    let futureDate = addDays(today, 2)
+    if (weekday(futureDate) === 0) futureDate = addDays(futureDate, 1)
+    const result = bookLesson({
+      studentId: 1,
+      tutorId: 1,
+      subjectId: 1,
+      date: futureDate,
+      time: '10:00',
+      durationMin: 60,
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.message).toContain('Not enough hours left')
+
+    const rows = listStudents(today, nowIso)
+    expect(rows[0].hoursLeft).toBe(0)
+    expect(getStudent(1, today, nowIso)?.hoursLeft).toBe(0)
+  })
 })
