@@ -92,7 +92,7 @@ describe('upcomingLessons ordering', () => {
     expect(second.ok).toBe(true)
     expect(third.ok).toBe(true)
 
-    const lessons = upcomingLessons(1)
+    const lessons = upcomingLessons(1, NOW.toISOString())
     const starts = lessons.map(l => l.startsAt)
     expect(starts).toEqual([...starts].sort())
   })
