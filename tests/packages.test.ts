@@ -141,4 +141,28 @@ describe('package with remaining hours past expiry', () => {
     expect(rows[0].hoursLeft).toBe(0)
     expect(getStudent(1, today, nowIso)?.hoursLeft).toBe(0)
   })
+
+  it('refuses when a used-up unexpired package blocks a newer package with hours', () => {
+    freshCentre()
+    const today = lagosDate(new Date())
+    withPackage(0, today)
+    const freshId = withPackage(10, today)
+
+    let futureDate = addDays(today, 2)
+    if (weekday(futureDate) === 0) futureDate = addDays(futureDate, 1)
+    const result = bookLesson({
+      studentId: 1,
+      tutorId: 1,
+      subjectId: 1,
+      date: futureDate,
+      time: '10:00',
+      durationMin: 60,
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.message).toContain('Not enough hours left')
+
+    const freshPkg = packagesForStudent(1).find(p => p.id === freshId)
+    expect(freshPkg?.hoursRemaining).toBe(10)
+  })
 })

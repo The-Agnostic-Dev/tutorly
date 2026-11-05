@@ -94,17 +94,20 @@ export function bookLesson(
   if (problem) return fail(problem)
 
   const today = lagosDate(now)
-  const pkgs = packagesWithHours(req.studentId)
+  const active = activePackage(req.studentId, today)
   let pkg: Package | null = null
-  if (pkgs.length > 0) {
-    pkg = pkgs.find((p) => p.expiresOn >= today) ?? pkgs[0]
-    if (!hasEnoughHours(pkg, req.durationMin)) {
-      return fail(`Not enough hours left on the package (${formatHours(pkg.hoursRemaining)} left). Please top up first.`)
-    }
-  } else {
-    const active = activePackage(req.studentId, today)
-    if (active) {
+  if (active) {
+    if (!hasEnoughHours(active, req.durationMin)) {
       return fail(`Not enough hours left on the package (${formatHours(active.hoursRemaining)} left). Please top up first.`)
+    }
+    pkg = active
+  } else {
+    const expired = packagesWithHours(req.studentId)
+    if (expired.length > 0) {
+      pkg = expired[0]
+      if (!hasEnoughHours(pkg, req.durationMin)) {
+        return fail(`Not enough hours left on the package (${formatHours(pkg.hoursRemaining)} left). Please top up first.`)
+      }
     }
   }
 
