@@ -112,7 +112,9 @@ export function bookLesson(
   }
 
   const db = getDb()
-  const lessonId = db.transaction(() => {
+  return db.transaction((): Outcome<{ lessonId: number; packageId: number | null }> => {
+    const clash = findClash(req)
+    if (clash) return fail(clash)
     const result = db
       .prepare(
         `INSERT INTO lessons (student_id, tutor_id, subject_id, starts_at, duration_min, package_id, created_at)
@@ -120,10 +122,8 @@ export function bookLesson(
       )
       .run(req.studentId, req.tutorId, req.subjectId, toUtcIso(req.date, req.time), req.durationMin, pkg?.id ?? null, now.toISOString())
     if (pkg) drawDown(pkg.id, req.durationMin)
-    return Number(result.lastInsertRowid)
+    return { ok: true, lessonId: Number(result.lastInsertRowid), packageId: pkg?.id ?? null }
   })()
-
-  return { ok: true, lessonId, packageId: pkg?.id ?? null }
 }
 
 export function cancelLesson(lessonId: number, user: User, now: Date = new Date()): Outcome<{ hoursReturned: boolean }> {

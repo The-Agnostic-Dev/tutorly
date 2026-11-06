@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { getDb } from '@/lib/db'
 import { getLesson } from '@/lib/data/lessons'
 import { upcomingLessons } from '@/lib/data/students'
 import { packagesForStudent } from '@/lib/data/packages'
@@ -59,6 +60,28 @@ describe('booking and cancelling', () => {
     bookLesson(request(), NOW)
     expect(checkSlot(request({ time: '16:30', studentId: 1 }), NOW)).toMatchObject({ ok: false })
     expect(checkSlot(request({ time: '17:00' }), NOW)).toEqual({ ok: true })
+  })
+
+  it('refuses a second student when the tutor is already booked', () => {
+    const first = bookLesson(request(), NOW)
+    expect(first.ok).toBe(true)
+    getDb()
+      .prepare("INSERT INTO students (id, name, class_level, parent_id) VALUES (2, 'Chioma Okoro', 'JSS 3', 3)")
+      .run()
+
+    const sameTime = bookLesson(request({ studentId: 2 }), NOW)
+    expect(sameTime.ok).toBe(false)
+    if (!sameTime.ok) expect(sameTime.message).toMatch(/already has a lesson/)
+
+    const overlapping = bookLesson(request({ studentId: 2, time: '16:30' }), NOW)
+    expect(overlapping.ok).toBe(false)
+    if (!overlapping.ok) expect(overlapping.message).toMatch(/already has a lesson/)
+
+    const free = bookLesson(request({ studentId: 2, time: '17:00' }), NOW)
+    if (!free.ok) throw new Error(free.message)
+    const lessons = upcomingLessons(2, NOW.toISOString())
+    expect(lessons).toHaveLength(1)
+    expect(lessons[0].id).toBe(free.lessonId)
   })
 
   it('returns hours when cancelled two days ahead', () => {
