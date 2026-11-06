@@ -1,6 +1,6 @@
 'use server'
 
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/lib/auth'
 import { saveTutor } from '@/lib/data/tutors'
@@ -19,7 +19,6 @@ export async function updateTutor(id: number, _prev: TutorFormState, formData: F
   if (hourlyRate === null || hourlyRate <= 0) return { error: 'Enter the hourly rate in naira, for example 7,500.' }
 
   saveTutor(id, { name, hourlyRate, bio, subjectIds })
-  revalidateTag('tutors')
   revalidatePath('/tutors')
   revalidatePath(`/tutors/${id}`)
   redirect(`/tutors?saved=${id}`)

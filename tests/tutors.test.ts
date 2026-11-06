@@ -40,6 +40,6 @@ describe('tutor directory', () => {
     const tutor = after.find((t) => t.id === 1)
     expect(tutor?.subjectIds).toContain(3)
     expect(tutor?.subjects).toContain('Economics')
-    expect(revalidateTag).toHaveBeenCalledWith('tutors')
+    expect(revalidateTag).toHaveBeenCalledWith('tutors', { expire: 0 })
   })
 })
