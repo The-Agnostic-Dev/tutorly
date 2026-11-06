@@ -1,4 +1,4 @@
-import { unstable_cache } from 'next/cache'
+import { revalidateTag, unstable_cache } from 'next/cache'
 import { getDb } from '../db'
 
 export type Subject = { id: number; name: string }
@@ -95,4 +95,5 @@ export function saveTutor(id: number, update: TutorUpdate) {
     const insert = db.prepare('INSERT INTO tutor_subjects (tutor_id, subject_id) VALUES (?, ?)')
     for (const subjectId of update.subjectIds) insert.run(id, subjectId)
   })()
+  revalidateTag('tutors', { expire: 0 })
 }
